@@ -22,10 +22,31 @@ from torchvision import transforms
 transform = transforms.Compose([
     transforms.Resize((192,192)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5,0.5,0.5],std=[0.5,0.5,0.5])
+    transforms.Normalize(mean=[0.5,0.5,0.5],std=[0.5,0.5,0.5]),
 ])
-train_ds = torchvision.datasets.ImageFolder(train_dir,transform=transform)
-test_ds = torchvision.datasets.ImageFolder(test_dir,transform=transform)
+
+#
+test_transform = transforms.Compose([
+    transforms.Resize((192,192)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5,0.5,0.5],std=[0.5,0.5,0.5]),
+
+
+])
+train_transform = transforms.Compose([
+    transforms.Resize(224),
+#增加随机性
+    transforms.RandomCrop(192),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(0.2),
+    transforms.ColorJitter(brightness=0.5),
+    transforms.ColorJitter(contrast=0.5),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5,0.5,0.5],std=[0.5,0.5,0.5]),
+])
+
+train_ds = torchvision.datasets.ImageFolder(train_dir,transform=train_transform)
+test_ds = torchvision.datasets.ImageFolder(test_dir,transform=test_transform)
 
 batch_size = 32
 train_dl = torch.utils.data.DataLoader(train_ds,batch_size=batch_size,shuffle=True)
