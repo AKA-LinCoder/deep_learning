@@ -53,15 +53,17 @@ train_dl = torch.utils.data.DataLoader(train_ds,batch_size=batch_size,shuffle=Tr
 test_dl = torch.utils.data.DataLoader(test_ds,batch_size=batch_size)
 imgs,labels = next(iter(train_dl))
 #第一次会下载
-model = torchvision.models.vgg16(pretrained=True)
+model = torchvision.models.resnet18(weights=True)
 
-for p in model.features.parameters():
+
+
+for p in model.parameters():
     p.requires_grad = False
+#替换原有linear层
+in_f = model.fc.in_features
+model.fc = nn.Linear(in_f,4)
 
-print(model.classifier[-1])
-model.classifier[-1].out_features = 4
-print(model.classifier[-1])
-optim = torch.optim.Adam(model.classifier.parameters(),lr=0.0001)
+optim = torch.optim.Adam(model.fc.parameters(),lr=0.0001)
 
 
 #学习速率衰减的办法
