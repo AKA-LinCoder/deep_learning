@@ -19,3 +19,13 @@ print(all_imgs_path)
 weather_dataset = MyDatSet(all_imgs_path)
 wh_dl = torch.utils.data.DataLoader(weather_dataset,batch_size=4)
 print(next(iter(wh_dl)))
+species = ["cloudy","rain","shine","sunrise"]
+species_to_index = dict((c,i) for i,c in enumerate(species))
+index_to_specise = dict((v,k) for k,v in species_to_index.items())
+
+all_labels = []
+for img in all_imgs_path:
+    for i,c in enumerate(species):
+        if c in img:
+            all_labels.append(i)
+
