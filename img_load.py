@@ -29,3 +29,20 @@ for img in all_imgs_path:
         if c in img:
             all_labels.append(i)
 
+transform = transforms.Compose([
+    transforms.Resize((96,96)),
+    transforms.ToTensor()
+])
+class newDataSet(data.Dataset):
+    def __init__(self,img_paths,labels):
+        self.imgs = img_paths
+        self.labels = labels
+        self.trainfroms = transform
+    def __getitem__(self, index):
+        img = self.imgs[index]
+        label = self.labels[index]
+        pil_img = Image.open(img)
+        data = self.trainfroms(pil_img)
+        return data,label
+    def __len__(self):
+        return len(self.imgs)
