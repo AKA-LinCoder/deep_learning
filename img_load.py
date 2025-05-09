@@ -4,6 +4,10 @@ from PIL import Image
 import numpy as np
 from torchvision import transforms
 import matplotlib.pyplot as plt
+
+from softmax import label_batch
+
+
 class MyDatSet(data.Dataset):
     def __init__(self,root):
         self.imgs_path = root
@@ -34,7 +38,7 @@ transform = transforms.Compose([
     transforms.ToTensor()
 ])
 class newDataSet(data.Dataset):
-    def __init__(self,img_paths,labels):
+    def __init__(self,img_paths,labels,transform):
         self.imgs = img_paths
         self.labels = labels
         self.trainfroms = transform
@@ -46,3 +50,18 @@ class newDataSet(data.Dataset):
         return data,label
     def __len__(self):
         return len(self.imgs)
+
+weather_data = newDataSet(all_imgs_path,all_labels,transform)
+weather_dl = data.DataLoader(
+    weather_data,batch_size=16,shuffle=True
+)
+imgs_batch,label_batch = next(iter(weather_dl))
+
+plt.figure(figsize=(12,8))
+for i,(img,label) in enumerate(zip(imgs_batch[:6],label_batch[:6])):
+    img = img.permute(1,2,0).numpy()
+    plt.subplot(2,3,i+1)
+    plt.title(index_to_specise.get(label.item()))
+    plt.imshow(img)
+
+plt.show()
