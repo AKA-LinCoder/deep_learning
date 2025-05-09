@@ -9,6 +9,8 @@ import shutil
 import torchvision
 import torch.utils.data
 
+from cnn_weather import Net
+
 # from cnn_weather import train_dir, batch_size
 
 base_dir = r"./dataset/4weather"
@@ -56,7 +58,7 @@ imgs,labels = next(iter(train_dl))
 model = torchvision.models.resnet18(weights=True)
 
 
-
+#冻结所有可训练参数
 for p in model.parameters():
     p.requires_grad = False
 #替换原有linear层
@@ -150,3 +152,53 @@ for epoch in range(epoches):
     train_acc.append(epoch_acc)
     test_loss.append(epoch_test_loss)
     test_acc.append(epoch_test_acc)
+
+#微调
+for param in model.parameters():
+    param.requires_grad = True
+
+extend_epoch = 30
+optim1 = torch.optim.Adam(model.parameters(),lr=0.0001)
+
+for epoch in range(extend_epoch):
+    epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_dl,test_dl)
+
+    #学习速率衰减
+    if epoch%5 == 0:
+        for p in optim.param_groups:
+            p["lr"] *=0.9
+
+    train_loss.append(epoch_loss)
+    train_acc.append(epoch_acc)
+    test_loss.append(epoch_test_loss)
+    test_acc.append(epoch_test_acc)
+
+#保存模型参数
+path = "my_model_pth"
+dict = model.state_dict()
+torch.save(dict,path)
+
+new_model = Net()
+new_model.load_state_dict(torch.load(path ))
+#训练函数保存最优参数
+import copy
+best_model_wts = copy.deepcopy(model.state_dict())
+best_acc = 0
+for epoch in range(extend_epoch):
+    epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_dl,test_dl)
+
+    if epoch_test_acc >best_acc:
+        best_model_wts = copy.deepcopy(model.state_dict())
+        best_acc = epoch_test_acc
+
+    #学习速率衰减
+    if epoch%5 == 0:
+        for p in optim.param_groups:
+            p["lr"] *=0.9
+
+    train_loss.append(epoch_loss)
+    train_acc.append(epoch_acc)
+    test_loss.append(epoch_test_loss)
+    test_acc.append(epoch_test_acc)
+
+model.load_state_dict(best_model_wts)
