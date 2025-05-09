@@ -81,3 +81,15 @@ train_ds = newDataSet(train_imgs,train_lables,transform)
 test_ds = newDataSet(test_imgs,test_lables,transform)
 train_dl = data.DataLoader(train_ds,batch_size=16,shuffle=True)
 test_dl = data.DataLoader(test_ds,batch_size=16)
+
+class new_dataset(data.Dataset):
+    def __init__(self,some_dataset):
+        self.ds = some_dataset
+    def __getitem__(self, index):
+        img,label = self.ds[index]
+        img = img.permute(1,2,0)
+        return  img,label
+    def __len__(self):
+        return len(self.ds)
+
+train_new_dataset = new_dataset(train_ds)
