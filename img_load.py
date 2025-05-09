@@ -37,6 +37,17 @@ transform = transforms.Compose([
     transforms.Resize((96,96)),
     transforms.ToTensor()
 ])
+
+#划分训练集和测试集
+index = np.random.permutation(len(all_imgs_path))
+all_imgs_path = np.array(all_imgs_path)[index]
+all_labels = np.array(all_labels)[index]
+s = int(len(all_imgs_path)*0.8)
+train_imgs = all_imgs_path[:s]
+train_lables = all_labels[:s]
+test_imgs = all_imgs_path[s:]
+test_lables = all_labels[s:]
+
 class newDataSet(data.Dataset):
     def __init__(self,img_paths,labels,transform):
         self.imgs = img_paths
@@ -65,3 +76,8 @@ for i,(img,label) in enumerate(zip(imgs_batch[:6],label_batch[:6])):
     plt.imshow(img)
 
 plt.show()
+
+train_ds = newDataSet(train_imgs,train_lables,transform)
+test_ds = newDataSet(test_imgs,test_lables,transform)
+train_dl = data.DataLoader(train_ds,batch_size=16,shuffle=True)
+test_dl = data.DataLoader(test_ds,batch_size=16)
