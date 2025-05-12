@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.utils.data
+from PIL import Image
+from torch.utils import data
 import torch.nn.functional as F
 import  torch.optim as optim
 import numpy as np
@@ -9,8 +10,9 @@ import torchvision
 import os
 import shutil
 import glob
+from torchvision import transforms
 
-from img_load import test_lables
+
 
 images_path = glob.glob("dataset/birds/*/*.jpg")
 # print(images_path[10].split("/")[1].split(".")[1])
@@ -33,3 +35,41 @@ train_path = images_path[:i]
 train_labels = all_labels[:i]
 test_path = images_path[i:]
 test_lables = all_labels[i:]
+
+tranform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor()
+])
+
+class BirdsDataset(data.Dataset):
+    def __init__(self,images_path,labels):
+        self.images_path = images_path
+        self.labels = labels
+    def __getitem__(self, index):
+        img = self.images_path[index]
+        label = self.labels[index]
+        pil_img = Image.open(img)
+        # 处理黑白图片
+        np_img = np.asarray(pil_img,dtype=np.uint8)
+        if len(np_img.shape)== 2:
+            img_data = np.repeat(np_img[:,:,np.newaxis],3,axis=2)
+            pil_img = Image.fromarray(img_data)
+        img_tensor = tranform(pil_img)
+        return img_tensor,label
+    def __len__(self):
+        return len(self.images_path)
+train_ds = BirdsDataset(train_path,train_labels)
+test_ds = BirdsDataset(test_path,test_lables)
+batch_size = 32
+train_dl = data.DataLoader(train_ds,batch_size=batch_size)
+test_dl = data.DataLoader(test_ds,batch_size=batch_size)
+img_batch,label_batch = next(iter(train_dl))
+print(img_batch.shape)
+plt.figure(figsize=(12,8))
+
+for i,(img,label) in enumerate(zip(img_batch[:6],label_batch[:6])):
+    img = img.permute(1,2,0).numpy()
+    plt.subplot(2,3,i+1)
+    plt.title(index_to_label.get(label.item()))
+    plt.imshow(img)
+plt.show()
