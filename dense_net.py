@@ -73,3 +73,27 @@ for i,(img,label) in enumerate(zip(img_batch[:6],label_batch[:6])):
     plt.title(index_to_label.get(label.item()))
     plt.imshow(img)
 plt.show()
+#使用densenet提取特征
+my_densenet = torchvision.models.densenet121(pretrained = True).features
+if torch.cuda.is_available():
+    my_densenet = my_densenet.cuda()
+for p in my_densenet.parameters():
+    p.requires_grad = False
+train_features = []
+train_features_labels = []
+for im,a in train_dl:
+    out = my_densenet(im)
+    out = out.view(out.size(0),-1)
+    train_features.extend(out.cpu().data)
+    train_features_labels.extend(a)
+
+test_features = []
+test_features_labels = []
+for im,a in test_dl:
+    out = my_densenet(im)
+    # 扁扁平化
+    out = out.view(out.size(0),-1)
+    test_features.extend(out.cpu().data)
+    test_features_labels.extend(a)
+
+print(test_features)
