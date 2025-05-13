@@ -62,3 +62,17 @@ xml_name = [x.split("/")[-1].replace(".xml","") for x in anno]
 images = [x for x in images if x.split("/")[-1].replace(".jpg","") in xml_name]
 print(len(images))
 print(len(xml_name))
+
+def to_labels(path):
+    xml = open(r"{}".format(path)).read()
+    sel = etree.HTML(xml)
+    width = int(sel.xpath("//size/width/text()")[0])
+    height = int(sel.xpath("//size/height/text()")[0])
+    ymax = int(sel.xpath("//bndbox/ymax/text()")[0])
+    ymin = int(sel.xpath("//bndbox/ymin/text()")[0])
+    xmax = int(sel.xpath("//bndbox/xmax/text()")[0])
+    xmin = int(sel.xpath("//bndbox/xmin/text()")[0])
+    return  [xmin/width,ymin/height,xmax/width,ymax/height]
+
+labels = [to_labels(p) for p in anno]
+print(labels)
