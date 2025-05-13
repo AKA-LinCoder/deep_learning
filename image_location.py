@@ -14,6 +14,7 @@ import glob
 from torchvision import transforms
 from lxml import etree
 
+
 batch_size = 8
 pil_img = Image.open(r"dataset/images/Abyssinian_1.jpg")
 np_img = np.array(pil_img)
@@ -75,4 +76,36 @@ def to_labels(path):
     return  [xmin/width,ymin/height,xmax/width,ymax/height]
 
 labels = [to_labels(p) for p in anno]
-print(labels)
+
+index = np.random.permutation(len(images))
+images = np.array(images)[index]
+labels = np.array(labels)[index]
+
+labels = labels.astype(np.float32)
+
+i = int(len(images) * 0.8)
+train_imgs = images[:i]
+train_labels = labels[:i]
+test_imgs = images[i:]
+test_labels = labels[i:]
+transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor()
+])
+
+class OXford_dataset(data.Dataset):
+    def __init__(self,images_path,label_list):
+        self.imgs = images_path
+        self.labels = label_list
+    def __getitem__(self, index):
+        img = self.imgs[index]
+        pil_img = Image.open(img)
+        img_tensor = transform(pil_img)
+        l1,l2,l3,l4 = self.labels[index]
+        return  img_tensor,l1,l2,l3,l4
+    def __len__(self):
+        return len(self.imgs)
+
+train_ds = OXford_dataset(train_imgs,train_labels)
+test_ds = OXford_dataset(test_imgs,test_labels)
+
