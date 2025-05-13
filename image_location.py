@@ -53,3 +53,12 @@ rect = Rectangle((xmin,ymin),(xmax-xmin),(ymax-ymin),fill=False,color="blue")
 ax = plt.gca()
 ax.axes.add_patch(rect)
 plt.show()
+
+
+images = glob.glob(r"dataset/images/*.jpg")
+anno = glob.glob(r"dataset/annotations/xmls/*.xml")
+#标签和图片不一一对应，
+xml_name = [x.split("/")[-1].replace(".xml","") for x in anno]
+images = [x for x in images if x.split("/")[-1].replace(".jpg","") in xml_name]
+print(len(images))
+print(len(xml_name))
