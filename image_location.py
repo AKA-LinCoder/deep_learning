@@ -15,7 +15,7 @@ from torchvision import transforms
 from lxml import etree
 
 
-batch_size = 8
+
 pil_img = Image.open(r"dataset/images/Abyssinian_1.jpg")
 np_img = np.array(pil_img)
 print(np.array(pil_img).shape)
@@ -106,6 +106,42 @@ class OXford_dataset(data.Dataset):
     def __len__(self):
         return len(self.imgs)
 
+
 train_ds = OXford_dataset(train_imgs,train_labels)
 test_ds = OXford_dataset(test_imgs,test_labels)
+batch_size = 32
+train_dl = data.DataLoader(train_ds,batch_size=batch_size,shuffle=True)
+test_dl = data.DataLoader(test_ds,batch_size=batch_size)
+images_bactch,out_b,out2_b,out3_b,out4_b = next(iter(train_dl))
 
+plt.figure(figsize=(12,8))
+for i ,(img,l1,l2,l3,l4) in enumerate(zip(images_bactch[:2],out_b[:2],out2_b[:2],out3_b[:2],out4_b[:2])):
+    img = img.permute(1,2,0).numpy()
+    plt.subplot(1,2,i+1)
+    plt.imshow(img)
+    xmin,ymin,xmax,ymax = l1*224,l2*224,l3*224,l4*224,
+    rect = Rectangle((xmin,ymin),(xmax-xmin),(ymax-ymin),fill=False,color='red')
+    ax = plt.gca()
+    ax.axes.add_patch(rect)
+plt.show()
+
+#创建定位模型
+resnet101 = torchvision.models.resnet101(weights=True)
+
+in_size = resnet101.fc.in_features
+
+class Net(nn.Module):
+    def __init__(self):
+        super.__init__()
+        self.conv_base = nn.Sequential(*list(resnet101.children())[:-1])
+        self.fc1 = nn.Linear(in_size,1)
+        self.fc2 = nn.Linear(in_size, 1)
+        self.fc3 = nn.Linear(in_size, 1)
+        self.fc4 = nn.Linear(in_size, 1)
+    def forward(self,x):
+        x = self.conv_base(x)
+        x1 = self.fc1(x)
+        x2 = self.fc2(x)
+        x3 = self.fc3(x)
+        x4 = self.fc4(x)
+        return x1,x2,x3,x4
